@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>滚动功能测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #1890ff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 14px;
+        }
+        .test-button:hover {
+            background: #40a9ff;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 16px;
+            border-radius: 6px;
+            background: #f6f8fa;
+            border-left: 4px solid #1890ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cherry Markdown Viewer 滚动功能测试</h1>
+        
+        <div class="status">
+            <h3>测试说明</h3>
+            <p>点击下面的按钮来测试不同的功能：</p>
+            <ul>
+                <li><strong>加载测试文档</strong>：加载包含多个标题和评论的测试文档</li>
+                <li><strong>测试大纲滚动</strong>：点击左侧大纲中的标题，观察是否正确滚动</li>
+                <li><strong>测试评论滚动</strong>：点击右侧评论面板中的评论，观察是否正确定位</li>
+            </ul>
+        </div>
+
+        <div>
+            <button class="test-button" onclick="loadTestDocument()">
+                📄 加载滚动测试文档
+            </button>
+            <button class="test-button" onclick="loadWelcomeDocument()">
+                🏠 加载欢迎文档
+            </button>
+            <button class="test-button" onclick="openMainApp()">
+                🚀 打开主应用
+            </button>
+        </div>
+
+        <div class="status">
+            <h3>预期效果</h3>
+            <p><strong>大纲滚动：</strong></p>
+            <ul>
+                <li>点击大纲项目后，页面应该平滑滚动到对应的标题</li>
+                <li>标题应该出现在视窗的上方1/4位置，方便阅读</li>
+                <li>标题会有蓝色高亮效果，持续3秒</li>
+                <li>高亮区域会显示"📍 滚动位置"标签</li>
+            </ul>
+            
+            <p><strong>评论滚动：</strong></p>
+            <ul>
+                <li>点击评论后，页面应该滚动到评论相关的内容区域</li>
+                <li>内容应该出现在视窗的中央偏上位置</li>
+                <li>相关内容会有蓝色虚线边框高亮，持续3秒</li>
+                <li>高亮区域会显示"💬 评论位置"标签</li>
+            </ul>
+        </div>
+
+        <div class="status">
+            <h3>调试信息</h3>
+            <p>如果滚动功能不正常，请：</p>
+            <ol>
+                <li>打开浏览器开发者工具 (F12)</li>
+                <li>查看控制台 (Console) 标签页</li>
+                <li>点击大纲或评论时，观察控制台输出的调试信息</li>
+                <li>检查是否有错误信息或警告</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        function loadTestDocument() {
+            const url = './markdown_demo/scroll_test.md';
+            window.open(`/?url=${encodeURIComponent(url)}`, '_blank');
+        }
+
+        function loadWelcomeDocument() {
+            const url = './markdown_demo/welcome.md';
+            window.open(`/?url=${encodeURIComponent(url)}`, '_blank');
+        }
+
+        function openMainApp() {
+            window.open('/', '_blank');
+        }
+
+        // 显示当前时间
+        document.addEventListener('DOMContentLoaded', function() {
+            const now = new Date().toLocaleString('zh-CN');
+            console.log(`测试页面加载时间: ${now}`);
+        });
+    </script>
+</body>
+</html> 

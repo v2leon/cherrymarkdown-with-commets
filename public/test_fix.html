@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试文档功能修复验证</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-button {
+            display: inline-block;
+            padding: 12px 24px;
+            margin: 8px;
+            background: #1890ff;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        .test-button:hover {
+            background: #40a9ff;
+        }
+        .status {
+            background: #f6ffed;
+            border: 1px solid #b7eb8f;
+            border-radius: 6px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+        .fix-item {
+            background: #fff2e8;
+            border-left: 4px solid #fa8c16;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 4px;
+        }
+        .debug-steps {
+            background: #e6f7ff;
+            border: 1px solid #91d5ff;
+            border-radius: 6px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+        .debug-steps ol {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+        .debug-steps li {
+            margin: 4px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 测试文档功能修复验证</h1>
+        
+        <div class="status">
+            <h3>修复内容</h3>
+            <div class="fix-item">
+                <strong>问题1：Cherry 编辑器初始化</strong><br>
+                修复了 Cherry 实例的 id 参数配置错误，确保正确传入容器 ID
+            </div>
+            <div class="fix-item">
+                <strong>问题2：错误处理和调试</strong><br>
+                增加了详细的调试信息和错误处理，便于排查问题
+            </div>
+            <div class="fix-item">
+                <strong>问题3：渲染时序</strong><br>
+                改进了 Cherry 实例的销毁和重新创建逻辑，避免冲突
+            </div>
+            <div class="fix-item">
+                <strong>问题4：标题ID设置</strong><br>
+                增加了重试机制，确保标题 ID 正确设置
+            </div>
+        </div>
+
+        <div>
+            <button class="test-button" onclick="openMainApp()">
+                🚀 打开主应用
+            </button>
+            <button class="test-button" onclick="openConsole()">
+                🔍 打开控制台
+            </button>
+            <button class="test-button" onclick="clearConsole()">
+                🧹 清空控制台
+            </button>
+        </div>
+
+        <div class="debug-steps">
+            <h3>🔍 测试步骤</h3>
+            <ol>
+                <li><strong>打开主应用</strong>：点击"打开主应用"按钮</li>
+                <li><strong>打开控制台</strong>：按F12，切换到Console标签页</li>
+                <li><strong>测试打开测试文档</strong>：
+                    <ul>
+                        <li>点击左上角菜单按钮（三条横线）</li>
+                        <li>选择"打开测试文档"</li>
+                        <li>选择任意一个测试文档</li>
+                    </ul>
+                </li>
+                <li><strong>观察结果</strong>：
+                    <ul>
+                        <li>检查文档是否正确渲染（不再是空白）</li>
+                        <li>查看控制台的详细调试信息</li>
+                        <li>验证大纲和评论功能是否正常</li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+
+        <div class="status">
+            <h3>预期修复效果</h3>
+            <ul>
+                <li>✅ <strong>文档正常渲染</strong>：切换测试文档后不再出现空白页面</li>
+                <li>✅ <strong>大纲正确显示</strong>：左侧大纲面板显示文档标题结构</li>
+                <li>✅ <strong>评论正确解析</strong>：右侧评论面板显示文档中的评论</li>
+                <li>✅ <strong>功能正常工作</strong>：滚动定位、高亮等功能正常</li>
+                <li>✅ <strong>调试信息完整</strong>：控制台显示详细的加载和渲染过程</li>
+            </ul>
+        </div>
+
+        <div class="status">
+            <h3>关键调试信息说明</h3>
+            <p><strong>文档加载相关：</strong></p>
+            <ul>
+                <li><code>=== 开始加载测试文档: xxx.md ===</code>：文档加载开始</li>
+                <li><code>响应状态: 200 OK</code>：文件请求成功</li>
+                <li><code>文件内容长度: xxx 字符</code>：文件内容获取成功</li>
+            </ul>
+            
+            <p><strong>内容处理相关：</strong></p>
+            <ul>
+                <li><code>=== 开始处理Markdown内容 ===</code>：内容解析开始</li>
+                <li><code>解析完成: x 个评论, x 个标题</code>：评论和标题解析结果</li>
+                <li><code>开始初始化Cherry编辑器...</code>：Cherry 实例创建开始</li>
+            </ul>
+            
+            <p><strong>渲染相关：</strong></p>
+            <ul>
+                <li><code>Cherry实例创建成功</code>：Cherry 编辑器初始化成功</li>
+                <li><code>找到 x 个标题，大纲中有 x 项</code>：标题元素匹配情况</li>
+                <li><code>标题ID设置完成: x/x 成功</code>：标题 ID 设置结果</li>
+            </ul>
+        </div>
+
+        <div class="debug-steps">
+            <h3>⚠️ 如果仍有问题</h3>
+            <p>如果修复后仍然存在问题，请检查：</p>
+            <ol>
+                <li>控制台是否有错误信息（红色文字）</li>
+                <li>Cherry 实例是否创建成功</li>
+                <li>文档内容是否正确获取</li>
+                <li>标题 ID 是否正确设置</li>
+                <li>浏览器缓存是否需要清理（Ctrl+F5 强制刷新）</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        function openMainApp() {
+            window.open('/', '_blank');
+        }
+
+        function openConsole() {
+            alert('请按 F12 键打开开发者工具，然后切换到 Console 标签页查看调试信息');
+        }
+
+        function clearConsole() {
+            console.clear();
+            console.log('🧹 控制台已清空，准备开始新的测试');
+        }
+
+        // 显示当前时间和版本信息
+        document.addEventListener('DOMContentLoaded', function() {
+            const now = new Date().toLocaleString('zh-CN');
+            console.log(`🔧 修复验证页面加载时间: ${now}`);
+            console.log(`📋 修复版本: v5.0 - 测试文档功能修复版`);
+            console.log(`🎯 主要修复: Cherry编辑器初始化、错误处理、调试信息`);
+        });
+    </script>
+</body>
+</html> 

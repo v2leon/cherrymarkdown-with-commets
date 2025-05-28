@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>简单评论测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #1890ff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 14px;
+        }
+        .test-button:hover {
+            background: #40a9ff;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 16px;
+            border-radius: 6px;
+            background: #f6f8fa;
+            border-left: 4px solid #1890ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 简单评论高亮测试</h1>
+        
+        <div class="status">
+            <h3>测试说明</h3>
+            <p>这是一个简化版本的评论高亮测试。现在使用：</p>
+            <ul>
+                <li>✅ 简单的元素选择策略（根据评论索引估算位置）</li>
+                <li>✅ 直接的内联样式应用（确保可见）</li>
+                <li>✅ 基本的scrollIntoView滚动</li>
+                <li>✅ 详细的控制台调试信息</li>
+            </ul>
+        </div>
+
+        <div>
+            <button class="test-button" onclick="loadCommentTest()">
+                💬 加载评论测试文档
+            </button>
+            <button class="test-button" onclick="openConsole()">
+                🔍 打开控制台
+            </button>
+        </div>
+
+        <div class="status">
+            <h3>测试步骤</h3>
+            <ol>
+                <li>按F12打开控制台</li>
+                <li>点击"加载评论测试文档"</li>
+                <li>点击右侧评论面板中的任意评论</li>
+                <li>观察：
+                    <ul>
+                        <li>控制台的详细调试信息</li>
+                        <li>页面是否滚动</li>
+                        <li>是否有黄色背景高亮出现</li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+
+        <div class="status">
+            <h3>预期效果</h3>
+            <ul>
+                <li>🟡 <strong>黄色背景高亮</strong>：选中的前后两行应该有明显的黄色背景</li>
+                <li>📍 <strong>左边框</strong>：高亮区域有橙色左边框</li>
+                <li>🎯 <strong>滚动定位</strong>：页面滚动到高亮区域</li>
+                <li>📊 <strong>控制台信息</strong>：显示元素选择和样式应用过程</li>
+            </ul>
+        </div>
+
+        <div class="status">
+            <h3>如果仍然不工作</h3>
+            <p>请检查控制台输出中的关键信息：</p>
+            <ul>
+                <li><code>找到 X 个可用元素</code> - 确认找到了文档元素</li>
+                <li><code>选择了 X 个元素进行高亮</code> - 确认选择了目标元素</li>
+                <li><code>元素 X 样式已应用</code> - 确认样式已应用</li>
+                <li><code>验证: 找到 X 个高亮元素</code> - 确认高亮生效</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function loadCommentTest() {
+            window.open('./markdown_demo/comment_test.md', '_blank');
+        }
+
+        function openConsole() {
+            alert('请按 F12 键打开开发者工具，然后切换到 Console 标签页查看调试信息');
+        }
+
+        // 显示当前时间和版本信息
+        document.addEventListener('DOMContentLoaded', function() {
+            const now = new Date().toLocaleString('zh-CN');
+            console.log(`🧪 简单测试页面加载时间: ${now}`);
+            console.log(`📋 版本: v4.0 - 简化版评论高亮测试`);
+        });
+    </script>
+</body>
+</html> 

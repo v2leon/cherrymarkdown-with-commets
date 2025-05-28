@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>滚动功能调试测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #1890ff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 14px;
+        }
+        .test-button:hover {
+            background: #40a9ff;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 16px;
+            border-radius: 6px;
+            background: #f6f8fa;
+            border-left: 4px solid #1890ff;
+        }
+        .debug-info {
+            background: #f0f0f0;
+            padding: 16px;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 滚动功能调试测试</h1>
+        
+        <div class="status">
+            <h3>修复内容</h3>
+            <p><strong>问题1：大纲滚动</strong></p>
+            <ul>
+                <li>✅ 修复了文档底部章节向上滚动的问题</li>
+                <li>✅ 改进了边界检测逻辑</li>
+                <li>✅ 增加了详细的调试信息</li>
+            </ul>
+            
+            <p><strong>问题2：评论滚动</strong></p>
+            <ul>
+                <li>✅ 强制执行滚动，不管元素是否可见</li>
+                <li>✅ 降低滚动阈值从50px到10px</li>
+                <li>✅ 增加了多重备用方案</li>
+                <li>✅ 改进了评论位置匹配算法</li>
+            </ul>
+        </div>
+
+        <div>
+            <button class="test-button" onclick="loadScrollTest()">
+                📄 加载滚动测试文档
+            </button>
+            <button class="test-button" onclick="loadCommentTest()">
+                💬 加载评论定位测试文档
+            </button>
+            <button class="test-button" onclick="loadWelcome()">
+                🏠 加载欢迎文档
+            </button>
+            <button class="test-button" onclick="openConsole()">
+                🔍 打开控制台查看调试信息
+            </button>
+        </div>
+
+        <div class="status">
+            <h3>测试步骤</h3>
+            <ol>
+                <li><strong>测试大纲滚动</strong>：
+                    <ul>
+                        <li>点击"加载欢迎文档"</li>
+                        <li>点击左侧大纲中的"开始使用"和"获取帮助"</li>
+                        <li>观察是否正确向下滚动到文档底部</li>
+                    </ul>
+                </li>
+                <li><strong>测试评论滚动</strong>：
+                    <ul>
+                        <li>点击"加载评论定位测试文档"</li>
+                        <li>点击右侧评论面板中的任意评论</li>
+                        <li>观察是否正确滚动到评论相关的内容区域</li>
+                        <li>验证高亮位置是否准确</li>
+                    </ul>
+                </li>
+                <li><strong>测试综合功能</strong>：
+                    <ul>
+                        <li>点击"加载滚动测试文档"</li>
+                        <li>同时测试大纲和评论的滚动功能</li>
+                        <li>验证各种边界情况的处理</li>
+                    </ul>
+                </li>
+                <li><strong>查看调试信息</strong>：
+                    <ul>
+                        <li>按F12打开开发者工具</li>
+                        <li>切换到Console标签页</li>
+                        <li>点击大纲或评论时查看详细的调试输出</li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+
+        <div class="debug-info">
+            <h4>调试信息说明</h4>
+            <p><strong>大纲滚动调试：</strong></p>
+            <ul>
+                <li>元素位置信息：显示元素相对于视窗的位置</li>
+                <li>滚动计算：显示目标滚动位置的计算过程</li>
+                <li>边界处理：显示边界限制的处理结果</li>
+            </ul>
+            
+            <p><strong>评论滚动调试：</strong></p>
+            <ul>
+                <li>评论查找过程：显示4种匹配方案的尝试结果</li>
+                <li>匹配得分：显示文本匹配的详细得分</li>
+                <li>滚动执行：显示最终的滚动操作</li>
+            </ul>
+        </div>
+
+        <div class="status">
+            <h3>预期效果</h3>
+            <p><strong>大纲滚动：</strong></p>
+            <ul>
+                <li>🔵 点击"开始使用"应该向下滚动到文档底部附近</li>
+                <li>🔵 点击"获取帮助"应该滚动到文档最底部</li>
+                <li>🟢 如果章节已在屏幕内，应该居中显示并有绿色高亮</li>
+            </ul>
+            
+            <p><strong>评论滚动：</strong></p>
+            <ul>
+                <li>💬 点击任意评论都应该触发滚动</li>
+                <li>🎯 滚动到评论相关的内容区域</li>
+                <li>✨ 显示高亮效果和位置标签</li>
+                <li>📊 控制台显示详细的匹配过程</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function loadScrollTest() {
+            window.open('./markdown_demo/scroll_test.md', '_blank');
+        }
+
+        function loadCommentTest() {
+            window.open('./markdown_demo/comment_test.md', '_blank');
+        }
+
+        function loadWelcome() {
+            window.open('./markdown_demo/welcome.md', '_blank');
+        }
+
+        function openConsole() {
+            alert('请按 F12 键打开开发者工具，然后切换到 Console 标签页查看调试信息');
+        }
+
+        // 显示当前时间和版本信息
+        document.addEventListener('DOMContentLoaded', function() {
+            const now = new Date().toLocaleString('zh-CN');
+            console.log(`🔧 调试页面加载时间: ${now}`);
+            console.log(`📋 修复版本: v2.0 - 大纲和评论滚动修复版`);
+        });
+    </script>
+</body>
+</html> 

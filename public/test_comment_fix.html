@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>评论滚动修复测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #1890ff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 14px;
+        }
+        .test-button:hover {
+            background: #40a9ff;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 16px;
+            border-radius: 6px;
+            background: #f6f8fa;
+            border-left: 4px solid #1890ff;
+        }
+        .fix-item {
+            background: #f0f9ff;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 8px 0;
+            border-left: 3px solid #1890ff;
+        }
+        .debug-steps {
+            background: #fff7e6;
+            padding: 16px;
+            border-radius: 6px;
+            margin: 20px 0;
+            border-left: 4px solid #faad14;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 评论滚动修复测试</h1>
+        
+        <div class="status">
+            <h3>修复内容</h3>
+            <div class="fix-item">
+                <strong>问题1：评论定位逻辑</strong><br>
+                重新实现评论定位，找到评论在文档中对应的前后章节位置
+            </div>
+            <div class="fix-item">
+                <strong>问题2：高亮范围和样式</strong><br>
+                改为高亮评论位置的前后两行内容，使用黄色背景和边框
+            </div>
+            <div class="fix-item">
+                <strong>问题3：状态管理</strong><br>
+                保持高亮直到取消选中或选中新评论，支持切换高亮
+            </div>
+            <div class="fix-item">
+                <strong>问题4：滚动定位</strong><br>
+                确保高亮的两行内容在屏幕可视范围内
+            </div>
+        </div>
+
+        <div>
+            <button class="test-button" onclick="loadCommentTest()">
+                💬 加载评论定位测试文档
+            </button>
+            <button class="test-button" onclick="openConsole()">
+                🔍 打开控制台查看调试信息
+            </button>
+            <button class="test-button" onclick="clearConsole()">
+                🧹 清空控制台
+            </button>
+        </div>
+
+        <div class="debug-steps">
+            <h3>🔍 调试步骤</h3>
+            <ol>
+                <li><strong>打开控制台</strong>：按F12，切换到Console标签页</li>
+                <li><strong>加载测试文档</strong>：点击"加载评论定位测试文档"</li>
+                <li><strong>测试评论滚动</strong>：点击右侧评论面板中的任意评论</li>
+                <li><strong>观察调试输出</strong>：查看详细的位置计算和高亮应用过程</li>
+                <li><strong>验证效果</strong>：确认页面滚动到正确位置并显示高亮效果</li>
+            </ol>
+        </div>
+
+        <div class="status">
+            <h3>预期修复效果</h3>
+            <ul>
+                <li>✅ <strong>精确定位评论位置</strong>：找到评论在文档中对应的前后章节</li>
+                <li>✅ <strong>行高亮显示</strong>：评论位置前后两行有黄色背景和左边框</li>
+                <li>✅ <strong>状态保持</strong>：高亮保持直到取消选中或选中新评论</li>
+                <li>✅ <strong>滚动定位</strong>：高亮区域自动滚动到可视范围内</li>
+                <li>✅ <strong>视觉标识</strong>：显示"📍 评论位置 (前后内容)"标签</li>
+            </ul>
+        </div>
+
+        <div class="status">
+            <h3>关键调试信息说明</h3>
+            <p><strong>评论定位相关：</strong></p>
+            <ul>
+                <li><code>开始查找评论的前后元素</code>：评论定位过程开始</li>
+                <li><code>找到最佳匹配位置</code>：通过前后文匹配找到评论位置</li>
+                <li><code>返回前后元素</code>：返回评论位置的前后两行元素</li>
+            </ul>
+            
+            <p><strong>高亮效果相关：</strong></p>
+            <ul>
+                <li><code>应用评论高亮效果</code>：开始为元素添加高亮样式</li>
+                <li><code>为元素添加高亮类</code>：添加comment-line-highlight类</li>
+                <li><code>高亮应用完成</code>：验证高亮是否成功应用</li>
+            </ul>
+            
+            <p><strong>滚动定位相关：</strong></p>
+            <ul>
+                <li><code>滚动到高亮区域</code>：计算并执行滚动操作</li>
+                <li><code>滚动计算</code>：显示高亮区域的位置计算过程</li>
+                <li><code>执行滚动/无需滚动</code>：最终的滚动决策</li>
+            </ul>
+        </div>
+
+        <div class="debug-steps">
+            <h3>⚠️ 如果仍有问题</h3>
+            <p>如果修复后仍然存在问题，请检查：</p>
+            <ol>
+                <li>控制台是否有错误信息</li>
+                <li>元素是否成功找到（findCommentPosition返回结果）</li>
+                <li>高亮类是否成功添加到元素上</li>
+                <li>CSS样式是否被其他样式覆盖</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        function loadCommentTest() {
+            window.open('./markdown_demo/comment_test.md', '_blank');
+        }
+
+        function openConsole() {
+            alert('请按 F12 键打开开发者工具，然后切换到 Console 标签页查看调试信息');
+        }
+
+        function clearConsole() {
+            console.clear();
+            console.log('🧹 控制台已清空，准备开始新的测试');
+        }
+
+        // 显示当前时间和版本信息
+        document.addEventListener('DOMContentLoaded', function() {
+            const now = new Date().toLocaleString('zh-CN');
+            console.log(`🔧 评论修复测试页面加载时间: ${now}`);
+            console.log(`📋 修复版本: v3.0 - 评论滚动和高亮修复版`);
+            console.log(`🎯 主要修复: 位置计算错误、高亮效果缺失、调试信息增强`);
+        });
+    </script>
+</body>
+</html> 
