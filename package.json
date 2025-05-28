@@ -1,0 +1,37 @@
+{
+  "name": "cherry-markdown-viewer",
+  "version": "1.0.0",
+  "description": "基于cherry-markdown的静态网站单页应用",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy:cos": "npm run build && node scripts/deploy-to-cos.js",
+    "deploy:netlify": "npm run build && node scripts/deploy-netlify.js"
+  },
+  "dependencies": {
+    "vue": "^3.4.0",
+    "cherry-markdown": "^0.8.46",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "vite": "^5.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/v2leon/cherrymarkdown-with-commets.git"
+  },
+  "homepage": "https://cherrymarkdown-with-commets.vercel.app",
+  "keywords": [
+    "markdown",
+    "cherry-markdown",
+    "vue",
+    "vite",
+    "static-site",
+    "comments"
+  ],
+  "author": "v2leon",
+  "license": "Apache-2.0"
+} 
