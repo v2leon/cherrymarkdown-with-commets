@@ -160,7 +160,7 @@
               <p>请使用左侧菜单选择一个Markdown文件进行预览</p>
             </div>
           </div>
-          <div v-else>
+          <div v-show="markdownContent" class="cherry-container-wrapper">
             <div ref="cherryContainer" id="cherry-container" class="cherry-wrapper"></div>
           </div>
         </div>
@@ -518,6 +518,9 @@ export default {
       // 清空容器内容
       cherryContainer.value.innerHTML = ''
 
+      // 确保容器有正确的类名和结构
+      cherryContainer.value.className = 'cherry-wrapper'
+
       await nextTick()
 
       try {
@@ -542,7 +545,46 @@ export default {
             showToolbar: false
           },
           // 确保是预览模式
-          isPreviewOnly: true
+          isPreviewOnly: true,
+          // 使用Cherry的事件机制
+          event: {
+            afterInit: (text, html) => {
+              console.log('=== Cherry afterInit 事件触发 ===')
+              console.log('Cherry实例完全初始化完成')
+              
+              // 在Cherry完全初始化后添加标题ID
+              setTimeout(() => {
+                addHeadingIds(0, () => {
+                  console.log('=== Cherry初始化完全完成，DOM结构已稳定 ===')
+                  
+                  // 额外的DOM稳定性检查
+                  setTimeout(() => {
+                    if (!cherryContainer.value) {
+                      console.warn('容器在稳定性检查时消失')
+                      return
+                    }
+                    
+                    const allElements = cherryContainer.value.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, blockquote, pre, div')
+                    const textElements = Array.from(allElements).filter(el => {
+                      const text = el.textContent?.trim()
+                      return text && text.length > 3 && !el.querySelector('p, h1, h2, h3, h4, h5, h6, li')
+                    })
+                    
+                    console.log(`DOM稳定性检查: 找到 ${textElements.length} 个可用文本元素`)
+                    console.log('Cherry容器结构:', {
+                      outerHTML: cherryContainer.value.outerHTML.substring(0, 300),
+                      children: Array.from(cherryContainer.value.children).map(child => ({
+                        tagName: child.tagName,
+                        className: child.className,
+                        childrenCount: child.children.length
+                      }))
+                    })
+                    console.log('评论点击功能现在应该可以正常工作了')
+                  }, 200)
+                })
+              }, 300)
+            }
+          }
         })
 
         console.log('Cherry实例创建成功')
@@ -554,23 +596,6 @@ export default {
           containerElement: cherryContainer.value
         })
 
-        // 检查 Cherry 是否正确绑定到容器
-        await nextTick()
-        console.log('Cherry 绑定检查:', {
-          containerAfterInit: cherryContainer.value.innerHTML.length,
-          containerChildren: cherryContainer.value.children.length,
-          containerOuterHTML: cherryContainer.value.outerHTML.substring(0, 200)
-        })
-
-        // 等待Cherry完全渲染完成后添加标题ID
-        setTimeout(() => {
-          console.log('检查渲染结果:', {
-            containerHTML: cherryContainer.value.innerHTML.length,
-            hasContent: cherryContainer.value.innerHTML.length > 0,
-            containerText: cherryContainer.value.textContent.substring(0, 100)
-          })
-          addHeadingIds()
-        }, 300)
       } catch (err) {
         console.error('Cherry初始化失败:', err)
         error.value = 'Markdown渲染失败: ' + err.message
@@ -578,7 +603,7 @@ export default {
     }
 
     // 为标题添加ID
-    const addHeadingIds = (retryCount = 0) => {
+    const addHeadingIds = (retryCount = 0, callback = null) => {
       if (!cherryContainer.value) {
         console.warn('Cherry容器未找到，无法添加标题ID')
         return
@@ -595,11 +620,12 @@ export default {
           const delay = Math.min(500 * (retryCount + 1), 2000) // 递增延迟，最大2秒
           console.log(`第 ${retryCount + 1} 次重试，延迟 ${delay}ms...`)
           setTimeout(() => {
-            addHeadingIds(retryCount + 1)
+            addHeadingIds(retryCount + 1, callback)
           }, delay)
           return
         } else {
           console.warn('重试5次后仍未找到标题元素，可能文档没有标题或渲染失败')
+          if (callback) callback()
           return
         }
       }
@@ -607,6 +633,7 @@ export default {
       // 如果没有大纲项，直接返回
       if (outline.value.length === 0) {
         console.log('文档没有标题，跳过ID设置')
+        if (callback) callback()
         return
       }
       
@@ -651,6 +678,12 @@ export default {
         } else if (verifiedCount < outline.value.length) {
           console.warn(`部分标题ID设置失败: ${verifiedCount}/${outline.value.length} 成功`)
         }
+        
+        // 执行回调，确保DOM结构已经稳定
+        if (callback) {
+          console.log('标题ID设置完成，执行回调函数')
+          callback()
+        }
       }, 100)
     }
 
@@ -659,11 +692,14 @@ export default {
       console.log('=== 开始处理Markdown内容 ===')
       console.log(`内容长度: ${content.length} 字符`)
       
+      console.log('步骤1: 设置markdownContent前，容器状态:', !!cherryContainer.value)
+      
       markdownContent.value = content
       comments.value = parseComments(content)
       outline.value = parseOutline(content)
       
       console.log(`解析完成: ${comments.value.length} 个评论, ${outline.value.length} 个标题`)
+      console.log('步骤2: 设置markdownContent后，容器状态:', !!cherryContainer.value)
       
       // 如果有评论，自动显示评论面板
       if (comments.value.length > 0) {
@@ -671,62 +707,28 @@ export default {
         console.log('自动显示评论面板')
       }
       
+      console.log('步骤3: nextTick前，容器状态:', !!cherryContainer.value)
+      
+      // 等待Vue更新DOM，确保容器已经渲染
       await nextTick()
       
-      // 如果 Cherry 实例已存在，使用官方 API 更新内容
-      if (cherryInstance) {
-        console.log('使用 Cherry API 更新现有实例内容...')
-        try {
-          const cleanContent = removeComments(content)
-          console.log('准备更新的内容长度:', cleanContent.length)
-          console.log('准备更新的内容预览:', cleanContent.substring(0, 100) + '...')
-          
-          // 根据官方文档，使用 setMarkdown 或 setValue 方法
-          cherryInstance.setMarkdown(cleanContent, false)
-          console.log('setMarkdown 调用成功')
-          
-          // 根据官方文档，调用 refreshPreviewer() 强制重新渲染预览区域
-          cherryInstance.refreshPreviewer()
-          console.log('refreshPreviewer 调用成功')
-          
-          // 检查渲染是否成功，如果失败则使用备用方案
-          await nextTick()
-          setTimeout(() => {
-            if (cherryContainer.value.innerHTML.length === 0) {
-              console.warn('Cherry 实例渲染失败，使用备用方案...')
-              // 备用方案：使用 Cherry Engine 直接渲染 HTML
-              try {
-                const htmlContent = cherryInstance.engine.makeHtml(cleanContent)
-                cherryContainer.value.innerHTML = htmlContent
-                console.log('备用方案渲染成功，内容长度:', htmlContent.length)
-              } catch (engineErr) {
-                console.error('备用方案也失败:', engineErr)
-              }
-            }
-          }, 200)
-          
-          // 等待渲染完成后添加标题ID
-          setTimeout(() => {
-            console.log('检查更新后的容器内容:', {
-              containerHTML: cherryContainer.value?.innerHTML?.length || 0,
-              hasContent: (cherryContainer.value?.innerHTML?.length || 0) > 0
-            })
-            // 给Cherry更多时间渲染，特别是对于本地文件
-            setTimeout(() => {
-              addHeadingIds()
-            }, 300)
-          }, 800)
-        } catch (err) {
-          console.error('Cherry API 更新失败:', err)
-          // 如果 API 更新失败，重新创建实例
-          console.log('API 更新失败，重新创建实例...')
-          await initCherry()
-        }
-      } else {
-        // 如果 Cherry 实例不存在，初始化新实例
-        console.log('初始化新的Cherry实例...')
-        await initCherry()
-      }
+      console.log('步骤4: nextTick后，容器状态:', !!cherryContainer.value)
+      
+      // 再次等待，确保容器完全准备好
+      await new Promise(resolve => setTimeout(resolve, 50))
+      
+      console.log('步骤5: 延迟后，容器状态:', !!cherryContainer.value)
+      
+      console.log('检查容器状态:', {
+        hasContainer: !!cherryContainer.value,
+        containerElement: cherryContainer.value,
+        markdownContentLength: markdownContent.value.length,
+        containerInDOM: document.getElementById('cherry-container')
+      })
+      
+      // 为了确保DOM结构的一致性，每次都重新初始化Cherry实例
+      console.log('重新初始化Cherry实例以确保DOM结构一致性...')
+      await initCherry()
       
       console.log('=== Markdown内容处理完成 ===')
     }
@@ -924,19 +926,65 @@ export default {
         return
       }
 
+      // 查找Cherry生成的实际内容容器
+      let contentContainer = cherryContainer.value
+      
+      // Cherry可能会生成嵌套的容器结构，我们需要找到实际包含内容的容器
+      const possibleContainers = [
+        cherryContainer.value.querySelector('.cherry-previewer'),
+        cherryContainer.value.querySelector('.cherry-markdown'),
+        cherryContainer.value.querySelector('.cherry-editor'),
+        cherryContainer.value.querySelector('[data-cherry-editor]'),
+        cherryContainer.value.querySelector('.cherry-previewer-content'),
+        cherryContainer.value.querySelector('.cherry-content'),
+        cherryContainer.value.children[0] // 第一个子元素
+      ].filter(Boolean)
+      
+      console.log('可能的内容容器:', possibleContainers.map(c => ({
+        tagName: c.tagName,
+        className: c.className,
+        childrenCount: c.children.length,
+        textLength: c.textContent?.length || 0
+      })))
+      
+      // 选择包含最多子元素且不是单个内容元素的容器
+      if (possibleContainers.length > 0) {
+        contentContainer = possibleContainers.find(container => {
+          // 排除单个内容元素（如H1, P等）
+          const isContentElement = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'P', 'LI', 'BLOCKQUOTE'].includes(container.tagName)
+          if (isContentElement) return false
+          
+          // 选择有多个子元素的容器
+          return container.children.length > 1
+        }) || possibleContainers[0] // 如果没找到合适的，使用第一个
+        
+        console.log('选择的内容容器:', {
+          tagName: contentContainer.tagName,
+          className: contentContainer.className,
+          childrenCount: contentContainer.children.length,
+          textLength: contentContainer.textContent?.length || 0
+        })
+      }
+      
+      // 如果选择的容器仍然是单个内容元素，回退到顶层容器
+      if (['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'P', 'LI', 'BLOCKQUOTE'].includes(contentContainer.tagName)) {
+        console.log('选择的容器是单个内容元素，回退到顶层容器')
+        contentContainer = cherryContainer.value
+      }
+
       // 获取所有可能的文本元素
-      const allElements = Array.from(cherryContainer.value.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, blockquote, pre, div'))
+      const allElements = Array.from(contentContainer.querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, blockquote, pre, div'))
         .filter(el => {
           const text = el.textContent?.trim()
           return text && text.length > 3 && !el.querySelector('p, h1, h2, h3, h4, h5, h6, li') // 排除包含其他元素的容器
         })
       
-      console.log(`找到 ${allElements.length} 个可用元素`)
+      console.log(`在内容容器中找到 ${allElements.length} 个可用元素`)
       
       if (allElements.length === 0) {
         console.error('没有找到任何可用元素')
         return
-    }
+      }
 
       // 寻找最匹配的元素
       let targetElement = null
@@ -1085,7 +1133,38 @@ export default {
     const clearCommentHighlight = () => {
       if (!cherryContainer.value) return
       
-      const highlighted = cherryContainer.value.querySelectorAll('.comment-line-highlight')
+      // 查找Cherry生成的实际内容容器
+      let contentContainer = cherryContainer.value
+      
+      // Cherry可能会生成嵌套的容器结构，我们需要找到实际包含内容的容器
+      const possibleContainers = [
+        cherryContainer.value.querySelector('.cherry-previewer'),
+        cherryContainer.value.querySelector('.cherry-markdown'),
+        cherryContainer.value.querySelector('.cherry-editor'),
+        cherryContainer.value.querySelector('[data-cherry-editor]'),
+        cherryContainer.value.querySelector('.cherry-previewer-content'),
+        cherryContainer.value.querySelector('.cherry-content'),
+        cherryContainer.value.children[0] // 第一个子元素
+      ].filter(Boolean)
+      
+      // 选择包含最多子元素且不是单个内容元素的容器
+      if (possibleContainers.length > 0) {
+        contentContainer = possibleContainers.find(container => {
+          // 排除单个内容元素（如H1, P等）
+          const isContentElement = ['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'P', 'LI', 'BLOCKQUOTE'].includes(container.tagName)
+          if (isContentElement) return false
+          
+          // 选择有多个子元素的容器
+          return container.children.length > 1
+        }) || possibleContainers[0] // 如果没找到合适的，使用第一个
+      }
+      
+      // 如果选择的容器仍然是单个内容元素，回退到顶层容器
+      if (['H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'P', 'LI', 'BLOCKQUOTE'].includes(contentContainer.tagName)) {
+        contentContainer = cherryContainer.value
+      }
+      
+      const highlighted = contentContainer.querySelectorAll('.comment-line-highlight')
       console.log(`清除 ${highlighted.length} 个评论高亮`)
       
       highlighted.forEach(el => {
@@ -1458,12 +1537,21 @@ export default {
       // 加载最近文件记录
       loadRecentFiles()
       
+      // 等待DOM完全准备好
+      await nextTick()
+      
       // 尝试加载欢迎文档
       try {
         const response = await fetch('./markdown_demo/welcome.md')
         if (response.ok) {
           const content = await response.text()
+          console.log('=== 初始加载欢迎文档 ===')
+          console.log('文档内容长度:', content.length)
+          
+          // 确保使用和其他加载方式相同的处理逻辑
           await processMarkdown(content)
+          
+          console.log('=== 初始加载完成 ===')
         }
       } catch (err) {
         console.log('未找到默认欢迎文档，等待用户选择文件')

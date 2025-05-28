@@ -1390,4 +1390,69 @@ body {
 
 .cors-notice strong {
   color: #ad4e00;
+}
+
+/* 移除Cherry预览器的阴影边框 */
+.cherry-previewer {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.cherry-previewer.cherry-markdown {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.cherry-previewer.cherry-markdown.light {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.cherry-previewer.cherry-markdown.light.cherry-preview--full {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* 确保所有可能的Cherry容器都没有边框 */
+.cherry-wrapper .cherry-previewer,
+.cherry-wrapper .cherry-markdown,
+.cherry-wrapper .cherry-preview--full {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* 移除cherry-container-wrapper层级的边框和阴影 */
+.cherry-container-wrapper {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.cherry-container-wrapper * {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* 移除所有Cherry相关元素的边框和阴影 */
+[class*="cherry"] {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* 特别针对可能的Cherry内部容器 */
+.cherry-previewer-content,
+.cherry-editor,
+.cherry-toolbar,
+.cherry-sidebar,
+.cherry-floatmenu {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
 } 
