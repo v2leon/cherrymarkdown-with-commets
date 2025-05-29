@@ -58,6 +58,13 @@
                     打开本地文件
                   </button>
                   
+                  <button class="menu-item" @click="showCosModal = true; showMenuDropdown = false">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2A10,10 0 0,0 2,12M12,17L7,12H10V8H14V12H17L12,17Z"/>
+                    </svg>
+                    从云存储导入
+                  </button>
+                  
                   <button class="menu-item" @click="showTestDocModal = true; showMenuDropdown = false">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
@@ -94,6 +101,9 @@
                         <svg v-if="file.type === 'url'" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                           <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
                         </svg>
+                        <svg v-else-if="file.type === 'cos'" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2A10,10 0 0,0 2,12M12,17L7,12H10V8H14V12H17L12,17Z"/>
+                        </svg>
                         <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                           <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
                         </svg>
@@ -102,6 +112,8 @@
                         <div class="recent-file-name">{{ file.title }}</div>
                         <div class="recent-file-meta">
                           <span v-if="file.type === 'local' && file.size" class="file-size">{{ formatFileSize(file.size) }}</span>
+                          <span v-if="file.type === 'cos' && file.size" class="file-size">{{ formatFileSize(file.size) }}</span>
+                          <span v-if="file.type === 'cos' && file.bucket" class="file-bucket">{{ file.bucket }}</span>
                           <span class="file-time">{{ formatTime(file.accessTime) }}</span>
                         </div>
                       </div>
@@ -313,14 +325,222 @@
         </div>
       </div>
     </div>
+
+    <!-- 腾讯云COS导入模态框 -->
+    <div v-if="showCosModal" class="modal-overlay" @click="closeCosModal">
+      <div class="modal large-modal" @click.stop>
+        <div class="modal-header">
+          <div class="modal-title-section">
+            <h3>从腾讯云COS导入</h3>
+            <div v-if="cosConnected" class="cos-connection-info">
+              <div class="connection-status">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="connected-icon">
+                  <path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M11,16.5L18,9.5L16.59,8.09L11,13.67L7.91,10.59L6.5,12L11,16.5Z"/>
+                </svg>
+                <span class="connection-text">已连接</span>
+              </div>
+              <div v-if="cosConnected && cosConfig.bucket && cosConfig.region" class="cos-path-info">
+                <span class="region-bucket">{{ cosConfig.region }}/{{ cosConfig.bucket }}</span>
+                <span v-if="currentPath" class="current-dir">{{ currentPath }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="modal-header-actions">
+            <!-- COS工具栏按钮 -->
+            <div v-if="cosConnected" class="cos-header-buttons">
+              <button 
+                v-if="currentPath !== ''"
+                class="header-button back-button"
+                @click="navigateToPath('')"
+                title="返回根目录"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"/>
+                </svg>
+                <span class="button-text">根目录</span>
+              </button>
+              <button 
+                class="header-button refresh-button" 
+                @click="refreshCosFiles"
+                title="刷新文件列表"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"/>
+                </svg>
+                <span class="button-text">刷新</span>
+              </button>
+              <button 
+                class="header-button disconnect-button" 
+                @click="disconnectFromCos"
+                title="断开连接"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12,2C17.53,2 22,6.47 22,12C22,17.53 17.53,22 12,22C6.47,22 2,17.53 2,12C2,6.47 6.47,2 12,2M15.59,7L12,10.59L8.41,7L7,8.41L10.59,12L7,15.59L8.41,17L12,13.41L15.59,17L17,15.59L13.41,12L17,8.41L15.59,7Z"/>
+                </svg>
+                <span class="button-text">断开</span>
+              </button>
+            </div>
+            <button class="modal-close" @click="closeCosModal">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="modal-body">
+          <!-- 配置区域 -->
+          <div v-if="!cosConnected" class="cos-config-section">
+            <h4>COS配置</h4>
+            <div class="input-group">
+              <label>SecretId:</label>
+              <input
+                v-model="cosConfig.secretId"
+                type="text"
+                placeholder="请输入腾讯云SecretId"
+                class="modal-input"
+              />
+            </div>
+            <div class="input-group">
+              <label>SecretKey:</label>
+              <div class="password-input-wrapper">
+                <input
+                  v-model="cosConfig.secretKey"
+                  :type="showSecretKey ? 'text' : 'password'"
+                  placeholder="请输入腾讯云SecretKey"
+                  class="modal-input"
+                />
+                <button 
+                  type="button" 
+                  class="password-toggle"
+                  @click="showSecretKey = !showSecretKey"
+                  :title="showSecretKey ? '隐藏密钥' : '显示密钥'"
+                >
+                  <svg v-if="showSecretKey" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M2,5.27L3.28,4L20,20.72L18.73,22L15.65,18.92C14.5,19.3 13.28,19.5 12,19.5C7,19.5 2.73,16.39 1,12C1.69,10.24 2.79,8.69 4.19,7.46L2,5.27M12,9A3,3 0 0,1 15,12C15,12.35 14.94,12.69 14.83,13L11,9.17C11.31,9.06 11.65,9 12,9M12,4.5C17,4.5 21.27,7.61 23,12C22.18,14.08 20.79,15.88 19,17.19L17.58,15.76C18.94,14.82 20.06,13.54 20.82,12C19.17,8.64 15.76,6.5 12,6.5C10.91,6.5 9.84,6.68 8.84,7L7.3,5.47C8.74,4.85 10.33,4.5 12,4.5M3.18,12C4.83,15.36 8.24,17.5 12,17.5C12.69,17.5 13.37,17.43 14,17.29L11.72,15C10.29,14.85 9.15,13.71 9,12.28L5.6,8.87C4.61,9.72 3.78,10.78 3.18,12Z"/>
+                  </svg>
+                  <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C17,4.5 21.27,7.61 23,12C21.27,16.39 17,19.5 12,19.5C7,19.5 2.73,16.39 1,12C2.73,7.61 7,4.5 12,4.5Z"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="input-group">
+              <label>存储桶:</label>
+              <input
+                v-model="cosConfig.bucket"
+                type="text"
+                placeholder="请输入存储桶名称，如: my-bucket-1234567890"
+                class="modal-input"
+              />
+            </div>
+            <div class="input-group">
+              <label>地域:</label>
+              <input
+                v-model="cosConfig.region"
+                type="text"
+                placeholder="请输入地域，如: ap-beijing"
+                class="modal-input"
+              />
+            </div>
+            <div class="cos-actions">
+              <button class="modal-button primary" @click="connectToCos" :disabled="cosConnecting">
+                {{ cosConnecting ? '连接中...' : '连接' }}
+              </button>
+              <button class="modal-button" @click="loadCosConfig">加载已保存配置</button>
+              <button class="modal-button danger" @click="clearCosConfig">清除本地配置</button>
+            </div>
+            
+            <div class="cos-notice">
+              <p class="modal-hint"><strong>私有存储桶说明：</strong></p>
+              <ul class="cos-tips-list">
+                <li>当前配置适用于<strong>私有读写</strong>的存储桶</li>
+                <li>需要提供有效的SecretId和SecretKey进行身份验证</li>
+                <li>确保密钥具有存储桶的<strong>ListBucket</strong>和<strong>GetObject</strong>权限</li>
+                <li>建议在COS控制台配置跨域访问规则：</li>
+                <li style="margin-left: 20px;">- 来源Origin: * 或您的域名</li>
+                <li style="margin-left: 20px;">- 允许方法: GET, HEAD</li>
+                <li style="margin-left: 20px;">- 允许头部: authorization, x-cos-*</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 文件浏览区域 -->
+          <div v-if="cosConnected" class="cos-browser-section">
+            <!-- 面包屑导航 -->
+            <div v-if="currentPath" class="breadcrumb-nav">
+              <div class="breadcrumb-items">
+                <button class="breadcrumb-item root" @click="navigateToPath('')">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/>
+                  </svg>
+                  根目录
+                </button>
+                <span class="breadcrumb-separator">/</span>
+                <template v-for="(segment, index) in pathSegments" :key="index">
+                  <button 
+                    class="breadcrumb-item"
+                    @click="navigateToPath(getPathToSegment(index))"
+                  >
+                    {{ segment }}
+                  </button>
+                  <span v-if="index < pathSegments.length - 1" class="breadcrumb-separator">/</span>
+                </template>
+              </div>
+            </div>
+            
+            <div v-if="cosLoading" class="cos-loading">
+              <div class="loading-spinner"></div>
+              <p>正在加载文件列表...</p>
+            </div>
+            
+            <div v-else class="cos-file-list">
+              <div
+                v-for="item in cosFiles"
+                :key="item.key"
+                class="cos-file-item"
+                :class="{ 'is-directory': item.isDirectory }"
+                @click="item.isDirectory ? navigateToPath(item.key) : selectCosFile(item)"
+              >
+                <div class="file-icon">
+                  <svg v-if="item.isDirectory" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z"/>
+                  </svg>
+                  <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                  </svg>
+                </div>
+                <div class="file-info">
+                  <div class="file-name">{{ item.name }}</div>
+                  <div v-if="!item.isDirectory" class="file-meta">
+                    <span class="file-size">{{ formatFileSize(item.size) }}</span>
+                    <span class="file-time">{{ formatTime(item.lastModified) }}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div v-if="cosFiles.length === 0" class="empty-state">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M19,19H5V5H19V19Z"/>
+                </svg>
+                <p>此目录为空</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="modal-button" @click="closeCosModal">取消</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick, computed } from 'vue'
 import Cherry from 'cherry-markdown/dist/cherry-markdown.core'
 import 'cherry-markdown/dist/cherry-markdown.css'
 import axios from 'axios'
+import COS from 'cos-js-sdk-v5'
 
 export default {
   name: 'App',
@@ -346,15 +566,33 @@ export default {
     const testDocuments = ref([
       { name: 'welcome.md', title: '欢迎文档', description: '应用介绍和基本功能说明' },
       { name: 'comment_test.md', title: '评论测试文档', description: '测试评论定位和高亮功能' },
-      { name: 'scroll_test.md', title: '滚动测试文档', description: '测试大纲滚动和定位功能' }
+      { name: 'scroll_test.md', title: '滚动测试文档', description: '测试大纲滚动和定位功能' },
+      { name: 'cos_guide.md', title: '腾讯云COS配置指南', description: '详细的COS配置和使用说明' }
     ])
     const showTestDocModal = ref(false)
     const showFileUploadModal = ref(false)
     const isDragOver = ref(false)
     const recentFiles = ref([])
 
+    // 腾讯云COS相关变量
+    const showCosModal = ref(false)
+    const cosConnected = ref(false)
+    const cosConnecting = ref(false)
+    const cosLoading = ref(false)
+    const showSecretKey = ref(false)
+    const cosConfig = ref({
+      secretId: '',
+      secretKey: '',
+      bucket: '',
+      region: ''
+    })
+    const cosFiles = ref([])
+    const currentPath = ref('')
+    let cosInstance = null
+
     // 本地存储键名
     const RECENT_FILES_KEY = 'cherry-markdown-recent-files'
+    const COS_CONFIG_KEY = 'cherry-markdown-cos-config'
 
     // 加载最近文件记录
     const loadRecentFiles = () => {
@@ -394,6 +632,8 @@ export default {
           return item.url !== file.url
         } else if (file.type === 'local' && item.type === 'local') {
           return item.name !== file.name
+        } else if (file.type === 'cos' && item.type === 'cos') {
+          return item.cosKey !== file.cosKey || item.bucket !== file.bucket
         }
         return true
       })
@@ -1494,6 +1734,52 @@ export default {
       } else if (recentFile.type === 'local') {
         // 本地文件无法直接重新加载，提示用户
         alert(`无法直接重新加载本地文件 "${recentFile.name}"，请使用"打开本地文件"功能重新选择。`)
+      } else if (recentFile.type === 'cos') {
+        // 重新加载COS文件
+        try {
+          // 检查是否有COS配置
+          const stored = localStorage.getItem(COS_CONFIG_KEY)
+          if (!stored) {
+            alert('没有保存的COS配置，请先配置COS连接')
+            return
+          }
+
+          const config = JSON.parse(stored)
+          
+          // 如果当前没有连接或者配置不匹配，重新连接
+          if (!cosInstance || cosInstance.bucket !== config.bucket || cosInstance.region !== config.region) {
+            cosConfig.value = { ...cosConfig.value, ...config }
+            await connectToCos()
+          }
+
+          // 使用COS SDK下载文件
+          const data = await new Promise((resolve, reject) => {
+            cosInstance.cosClient.getObject({
+              Bucket: recentFile.bucket,
+              Region: recentFile.region,
+              Key: recentFile.cosKey
+            }, (err, data) => {
+              if (err) {
+                console.error('重新下载COS文件失败:', err)
+                reject(new Error(err.message || err.error?.Message || '下载文件失败'))
+              } else {
+                console.log('COS文件重新下载成功')
+                resolve(data)
+              }
+            })
+          })
+
+          // COS SDK返回的Body是一个包含文件内容的对象
+          const content = data.Body.toString('utf8')
+
+          await processMarkdown(content)
+          
+          console.log('COS文件重新加载成功:', recentFile.name)
+          
+        } catch (err) {
+          console.error('重新加载COS文件失败:', err)
+          alert(`重新加载COS文件失败: ${err.message || '未知错误'}`)
+        }
       }
     }
 
@@ -1527,6 +1813,434 @@ export default {
       if (diff < 604800000) return Math.floor(diff / 86400000) + '天前'
       
       return date.toLocaleDateString()
+    }
+
+    // ===== 腾讯云COS相关方法 =====
+    
+    // 计算路径段用于面包屑导航
+    const pathSegments = computed(() => {
+      if (!currentPath.value) return []
+      return currentPath.value.split('/').filter(segment => segment.length > 0)
+    })
+
+    // 获取到指定段的路径
+    const getPathToSegment = (segmentIndex) => {
+      const segments = pathSegments.value.slice(0, segmentIndex + 1)
+      return segments.join('/') + (segments.length > 0 ? '/' : '')
+    }
+    
+    // 关闭COS模态框
+    const closeCosModal = () => {
+      showCosModal.value = false
+    }
+
+    // 加载保存的COS配置
+    const loadCosConfig = () => {
+      try {
+        const stored = localStorage.getItem(COS_CONFIG_KEY)
+        if (stored) {
+          const config = JSON.parse(stored)
+          cosConfig.value.bucket = config.bucket || ''
+          cosConfig.value.region = config.region || ''
+          cosConfig.value.secretId = config.secretId || ''
+          cosConfig.value.secretKey = config.secretKey || ''
+          console.log('已加载保存的COS配置')
+        } else {
+          alert('没有找到保存的配置')
+        }
+      } catch (err) {
+        console.warn('加载COS配置失败:', err)
+        alert('加载配置失败')
+      }
+    }
+
+    // 保存COS配置到本地存储
+    const saveCosConfig = () => {
+      try {
+        localStorage.setItem(COS_CONFIG_KEY, JSON.stringify(cosConfig.value))
+        console.log('COS配置已保存到本地')
+      } catch (err) {
+        console.warn('保存COS配置失败:', err)
+      }
+    }
+
+    // 清除本地COS配置
+    const clearCosConfig = () => {
+      if (confirm('确定要清除本地保存的COS配置吗？')) {
+        try {
+          localStorage.removeItem(COS_CONFIG_KEY)
+          cosConfig.value = {
+            secretId: '',
+            secretKey: '',
+            bucket: '',
+            region: ''
+          }
+          console.log('COS配置已清除')
+          alert('配置已清除')
+        } catch (err) {
+          console.warn('清除COS配置失败:', err)
+        }
+      }
+    }
+
+    // 连接到腾讯云COS
+    const connectToCos = async () => {
+      if (!cosConfig.value.secretId || !cosConfig.value.secretKey || 
+          !cosConfig.value.bucket || !cosConfig.value.region) {
+        alert('请填写完整的COS配置信息')
+        return
+      }
+
+      cosConnecting.value = true
+
+      try {
+        console.log('连接私有COS存储桶:', cosConfig.value.bucket)
+        console.log('当前页面Origin:', window.location.origin)
+        
+        // 使用COS SDK进行认证连接
+        const cos = new COS({
+          SecretId: cosConfig.value.secretId,
+          SecretKey: cosConfig.value.secretKey,
+          Region: cosConfig.value.region,
+          // 添加CORS相关配置
+          Protocol: 'https:',
+          Domain: '',
+          UseAccelerate: false,
+          Timeout: 30000,
+          // 启用调试模式以获取更多信息
+          LogLevel: 'DEBUG'
+        })
+
+        console.log('COS SDK初始化完成，开始测试连接...')
+
+        // 测试连接 - 尝试列出存储桶内容
+        const testResult = await new Promise((resolve, reject) => {
+          cos.getBucket({
+            Bucket: cosConfig.value.bucket,
+            Region: cosConfig.value.region,
+            MaxKeys: 1
+          }, (err, data) => {
+            if (err) {
+              console.error('COS连接测试失败详细信息:', {
+                error: err,
+                message: err.message,
+                code: err.code,
+                statusCode: err.statusCode,
+                headers: err.headers
+              })
+              
+              // 提供更友好的错误信息
+              let errorMessage = err.message || '未知错误'
+              
+              if (err.message && err.message.includes('CORS')) {
+                errorMessage = 'CORS跨域问题：请检查COS控制台的跨域配置是否包含当前域名 ' + window.location.origin
+              } else if (err.code === 'NetworkError' || err.message.includes('network')) {
+                errorMessage = '网络连接错误：请检查网络连接或存储桶配置'
+              } else if (err.statusCode === 403) {
+                errorMessage = '权限错误：请检查SecretId/SecretKey是否正确，以及是否有存储桶访问权限'
+              } else if (err.statusCode === 404) {
+                errorMessage = '存储桶不存在：请检查存储桶名称和地域是否正确'
+              }
+              
+              reject(new Error(errorMessage))
+            } else {
+              console.log('COS连接测试成功:', data)
+              resolve(data)
+            }
+          })
+        })
+
+        // 初始化COS客户端实例
+        cosInstance = {
+          bucket: cosConfig.value.bucket,
+          region: cosConfig.value.region,
+          secretId: cosConfig.value.secretId,
+          secretKey: cosConfig.value.secretKey,
+          cosClient: cos,
+          baseUrl: `https://${cosConfig.value.bucket}.cos.${cosConfig.value.region}.myqcloud.com`
+        }
+
+        cosConnected.value = true
+        console.log('COS连接成功 (私有模式)')
+        
+        // 保存配置到本地存储
+        saveCosConfig()
+        
+        // 加载根目录文件
+        await loadCosFiles('')
+        
+      } catch (err) {
+        console.error('COS连接失败:', err)
+        let errorMsg = `COS连接失败: ${err.message || '未知错误'}`
+        
+        if (err.message.includes('CORS')) {
+          errorMsg += `\n\n🔧 解决方案：\n1. 登录腾讯云COS控制台\n2. 进入存储桶的"安全管理" → "跨域访问CORS"\n3. 确保来源Origin包含: ${window.location.origin}\n4. 确保方法包含: GET, POST, OPTIONS, HEAD\n5. Allow-Headers设置为: *\n6. 等待2-5分钟生效后重试`
+        } else {
+          errorMsg += `\n\n请检查：\n1. SecretId和SecretKey是否正确\n2. 存储桶名称和地域是否正确\n3. 密钥是否具有存储桶访问权限\n4. 网络连接是否正常`
+        }
+        
+        alert(errorMsg)
+      } finally {
+        cosConnecting.value = false
+      }
+    }
+
+    // 断开COS连接
+    const disconnectFromCos = () => {
+      cosConnected.value = false
+      cosInstance = null
+      cosFiles.value = []
+      currentPath.value = ''
+      console.log('已断开COS连接')
+    }
+
+    // 加载COS文件列表
+    const loadCosFiles = async (path = '') => {
+      if (!cosInstance || !cosInstance.cosClient) return
+
+      cosLoading.value = true
+      
+      try {
+        console.log('加载文件列表，路径:', path)
+        
+        // 使用COS SDK获取文件列表
+        const data = await new Promise((resolve, reject) => {
+          cosInstance.cosClient.getBucket({
+            Bucket: cosInstance.bucket,
+            Region: cosInstance.region,
+            Prefix: path,
+            Delimiter: '/',
+            MaxKeys: 1000
+          }, (err, data) => {
+            if (err) {
+              console.error('获取文件列表失败:', err)
+              reject(new Error(err.message || err.error?.Message || '获取文件列表失败'))
+            } else {
+              console.log('文件列表获取成功:', data)
+              resolve(data)
+            }
+          })
+        })
+
+        const files = []
+        
+        // 添加子目录
+        if (data.CommonPrefixes) {
+          console.log('解析到的CommonPrefixes:', data.CommonPrefixes)
+          data.CommonPrefixes.forEach(prefix => {
+            const prefixValue = prefix.Prefix
+            console.log(`处理prefix: "${prefixValue}", 当前路径: "${path}"`)
+            
+            // 移除当前路径前缀，获取相对目录名
+            let dirName = prefixValue.replace(path, '')
+            
+            // 移除末尾的斜杠
+            if (dirName.endsWith('/')) {
+              dirName = dirName.slice(0, -1)
+            }
+            
+            console.log(`处理后的目录名: "${dirName}"`)
+            
+            // 只显示直接子目录名称，不包含更深层的路径
+            if (dirName && !dirName.includes('/')) {
+              console.log(`添加目录: "${dirName}"`)
+              files.push({
+                key: prefixValue,
+                name: dirName,
+                isDirectory: true
+              })
+            }
+          })
+        }
+
+        // 添加文件（过滤出markdown文件）
+        if (data.Contents) {
+          console.log('解析到的Contents:', data.Contents.map(c => c.Key))
+          data.Contents.forEach(item => {
+            // 移除当前路径前缀，获取相对文件名
+            let fileName = item.Key.replace(path, '')
+            
+            // 只显示当前目录下的直接文件，不包含子目录中的文件
+            if (fileName && 
+                !fileName.endsWith('/') && 
+                !fileName.includes('/') && 
+                fileName.match(/\.(md|markdown)$/i)) {
+              console.log(`添加文件: "${fileName}"`)
+              files.push({
+                key: item.Key,
+                name: fileName,
+                size: item.Size,
+                lastModified: new Date(item.LastModified).getTime(),
+                isDirectory: false
+              })
+            }
+          })
+        }
+
+        cosFiles.value = files
+        currentPath.value = path
+        console.log(`加载COS文件列表成功: ${files.length}项`, files)
+        
+      } catch (err) {
+        console.error('加载COS文件列表失败:', err)
+        alert(`加载文件列表失败: ${err.message || '未知错误'}`)
+      } finally {
+        cosLoading.value = false
+      }
+    }
+
+    // 解析COS ListBucket API返回的XML
+    const parseListBucketResult = (xmlText) => {
+      console.log('=== 开始解析XML ===')
+      console.log('XML原始内容长度:', xmlText.length)
+      console.log('XML前200字符:', xmlText.substring(0, 200))
+      
+      const parser = new DOMParser()
+      const doc = parser.parseFromString(xmlText, 'text/xml')
+      
+      console.log('解析后的Document:', doc)
+      console.log('Document节点数量:', doc.childNodes.length)
+      
+      // 检查是否有解析错误
+      const parseError = doc.querySelector('parsererror')
+      if (parseError) {
+        console.error('XML解析错误:', parseError.textContent)
+        return { contents: [], commonPrefixes: [] }
+      }
+      
+      const result = {
+        contents: [],
+        commonPrefixes: []
+      }
+      
+      // 打印完整的XML结构
+      console.log('XML根元素:', doc.documentElement?.tagName)
+      console.log('XML子元素:', Array.from(doc.documentElement?.children || []).map(child => child.tagName))
+      
+      // 解析文件列表 - 尝试多种可能的选择器
+      const contentSelectors = ['Contents', 'contents', 'Content']
+      let contents = null
+      
+      for (const selector of contentSelectors) {
+        contents = doc.querySelectorAll(selector)
+        console.log(`尝试选择器 "${selector}": 找到 ${contents.length} 个元素`)
+        if (contents.length > 0) break
+      }
+      
+      if (contents && contents.length > 0) {
+        contents.forEach((content, index) => {
+          console.log(`处理第 ${index + 1} 个Content元素:`)
+          
+          const key = content.querySelector('Key')?.textContent || content.querySelector('key')?.textContent
+          const size = content.querySelector('Size')?.textContent || content.querySelector('size')?.textContent
+          const lastModified = content.querySelector('LastModified')?.textContent || content.querySelector('lastModified')?.textContent
+          
+          console.log(`  Key: ${key}`)
+          console.log(`  Size: ${size}`)
+          console.log(`  LastModified: ${lastModified}`)
+          
+          if (key) {
+            result.contents.push({
+              key,
+              size: parseInt(size) || 0,
+              lastModified
+            })
+          }
+        })
+      }
+      
+      // 解析目录列表 - 尝试多种可能的选择器
+      const prefixSelectors = ['CommonPrefixes', 'commonPrefixes', 'CommonPrefix']
+      let prefixes = null
+      
+      for (const selector of prefixSelectors) {
+        prefixes = doc.querySelectorAll(selector)
+        console.log(`尝试选择器 "${selector}": 找到 ${prefixes.length} 个元素`)
+        if (prefixes.length > 0) break
+      }
+      
+      if (prefixes && prefixes.length > 0) {
+        prefixes.forEach((prefix, index) => {
+          console.log(`处理第 ${index + 1} 个CommonPrefix元素:`)
+          
+          const prefixValue = prefix.querySelector('Prefix')?.textContent || prefix.querySelector('prefix')?.textContent
+          console.log(`  Prefix: ${prefixValue}`)
+          
+          if (prefixValue) {
+            result.commonPrefixes.push(prefixValue)
+          }
+        })
+      }
+      
+      console.log('=== XML解析完成 ===')
+      console.log('最终结果:', result)
+      return result
+    }
+
+    // 导航到指定路径
+    const navigateToPath = async (path) => {
+      await loadCosFiles(path)
+    }
+
+    // 刷新当前路径的文件列表
+    const refreshCosFiles = async () => {
+      await loadCosFiles(currentPath.value)
+    }
+
+    // 选择COS文件并下载
+    const selectCosFile = async (file) => {
+      if (file.isDirectory) return
+
+      loading.value = true
+      error.value = ''
+      showCosModal.value = false
+
+      try {
+        console.log('下载文件:', file.key)
+        
+        // 使用COS SDK下载文件
+        const data = await new Promise((resolve, reject) => {
+          cosInstance.cosClient.getObject({
+            Bucket: cosInstance.bucket,
+            Region: cosInstance.region,
+            Key: file.key
+          }, (err, data) => {
+            if (err) {
+              console.error('下载文件失败:', err)
+              reject(new Error(err.message || err.error?.Message || '下载文件失败'))
+            } else {
+              console.log('文件下载成功')
+              resolve(data)
+            }
+          })
+        })
+
+        // COS SDK返回的Body是一个包含文件内容的对象
+        const content = data.Body.toString('utf8')
+        console.log(`文件下载成功，内容长度: ${content.length}`)
+
+        await processMarkdown(content)
+        
+        // 添加到最近文件记录
+        addToRecentFiles({
+          type: 'cos',
+          name: file.name,
+          title: file.name.replace(/\.(md|markdown)$/i, ''),
+          size: file.size,
+          lastModified: file.lastModified,
+          cosKey: file.key,
+          bucket: cosInstance.bucket,
+          region: cosInstance.region
+        })
+
+        console.log('COS文件加载成功:', file.name)
+        
+      } catch (err) {
+        console.error('加载COS文件失败:', err)
+        error.value = `加载文件失败: ${err.message || '未知错误'}`
+      } finally {
+        loading.value = false
+      }
     }
 
     // 组件挂载时加载默认文件
@@ -1597,7 +2311,28 @@ export default {
       loadRecentFile,
       clearRecentFiles,
       formatFileSize,
-      formatTime
+      formatTime,
+      // COS相关
+      showCosModal,
+      cosConnected,
+      cosConnecting,
+      cosLoading,
+      showSecretKey,
+      cosConfig,
+      cosFiles,
+      currentPath,
+      closeCosModal,
+      loadCosConfig,
+      saveCosConfig,
+      clearCosConfig,
+      connectToCos,
+      disconnectFromCos,
+      loadCosFiles,
+      navigateToPath,
+      refreshCosFiles,
+      selectCosFile,
+      pathSegments,
+      getPathToSegment
     }
   }
 }

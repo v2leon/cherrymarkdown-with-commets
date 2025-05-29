@@ -268,6 +268,15 @@ body {
   font-weight: 500;
 }
 
+.file-bucket {
+  background: #f6ffed;
+  color: #52c41a;
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-weight: 500;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
 .file-time {
   color: #999;
 }
@@ -1455,4 +1464,441 @@ body {
   border: none !important;
   box-shadow: none !important;
   outline: none !important;
+}
+
+/* ===== 腾讯云COS导入功能样式 ===== */
+
+/* 大号模态框 */
+.large-modal {
+  max-width: 800px;
+  width: 90vw;
+  max-height: 90vh;
+  height: auto;
+}
+
+/* 优化的模态框头部 */
+.large-modal .modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.modal-title-section {
+  flex: 1;
+}
+
+.modal-title-section h3 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  color: #333;
+}
+
+/* 连接状态信息 */
+.cos-connection-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.connected-icon {
+  color: #52c41a;
+  width: 16px;
+  height: 16px;
+}
+
+.connection-text {
+  font-size: 12px;
+  color: #52c41a;
+  font-weight: 500;
+}
+
+.cos-path-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.region-bucket {
+  background: #f0f8ff;
+  color: #1890ff;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 500;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.current-dir {
+  background: #f6ffed;
+  color: #52c41a;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 500;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+/* 头部操作按钮区域 */
+.modal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cos-header-buttons {
+  display: flex;
+  gap: 6px;
+  margin-right: 12px;
+}
+
+.header-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  min-width: 36px;
+  height: 32px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  background: white;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.header-button:hover {
+  border-color: #1890ff;
+  color: #1890ff;
+}
+
+.header-button.back-button:hover {
+  border-color: #722ed1;
+  color: #722ed1;
+}
+
+.header-button.refresh-button:hover {
+  border-color: #52c41a;
+  color: #52c41a;
+}
+
+.header-button.disconnect-button:hover {
+  border-color: #ff4d4f;
+  color: #ff4d4f;
+}
+
+.header-button svg {
+  flex-shrink: 0;
+}
+
+.header-button .button-text {
+  white-space: nowrap;
+}
+
+/* 面包屑导航 */
+.breadcrumb-nav {
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 16px;
+}
+
+.breadcrumb-items {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.breadcrumb-item:hover {
+  background: #f0f8ff;
+  color: #1890ff;
+}
+
+.breadcrumb-item.root {
+  color: #1890ff;
+  font-weight: 500;
+}
+
+.breadcrumb-item.root svg {
+  width: 14px;
+  height: 14px;
+}
+
+.breadcrumb-separator {
+  color: #ccc;
+  font-size: 12px;
+  margin: 0 2px;
+}
+
+/* COS配置区域 */
+.cos-config-section {
+  padding: 20px 0;
+}
+
+.cos-config-section h4 {
+  margin: 0 0 20px 0;
+  color: #333;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.input-group {
+  margin-bottom: 16px;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 6px;
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* 密码输入框容器 */
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper .modal-input {
+  padding-right: 40px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.password-toggle:hover {
+  background-color: #f5f5f5;
+  color: #1890ff;
+}
+
+.password-toggle svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* COS操作按钮区域 */
+.cos-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+.modal-button.danger {
+  background: #ff4d4f;
+  color: white;
+}
+
+.modal-button.danger:hover {
+  background: #ff7875;
+}
+
+/* COS提示信息 */
+.cos-notice {
+  background: #e6f7ff;
+  border: 1px solid #91d5ff;
+  border-radius: 6px;
+  padding: 16px;
+  margin-top: 20px;
+}
+
+.cos-notice .modal-hint {
+  margin: 0 0 8px 0;
+  color: #1890ff;
+  font-size: 13px;
+}
+
+.cos-tips-list {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 12px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.cos-tips-list li {
+  margin-bottom: 4px;
+}
+
+/* COS文件浏览区域 */
+.cos-browser-section {
+  padding: 20px 0;
+}
+
+/* COS加载状态 */
+.cos-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: #666;
+}
+
+.cos-loading .loading-spinner {
+  margin-bottom: 16px;
+}
+
+/* COS文件列表 */
+.cos-file-list {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.cos-file-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f0f0f0;
+  background: white;
+}
+
+.cos-file-item:last-child {
+  border-bottom: none;
+}
+
+.cos-file-item:hover {
+  background: #f0f8ff;
+}
+
+.cos-file-item.is-directory {
+  background: #f9f9f9;
+}
+
+.cos-file-item.is-directory:hover {
+  background: #e6fffb;
+}
+
+.cos-file-item .file-icon {
+  flex-shrink: 0;
+  color: #666;
+}
+
+.cos-file-item.is-directory .file-icon {
+  color: #1890ff;
+}
+
+.cos-file-item .file-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cos-file-item .file-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 2px;
+  word-break: break-all;
+}
+
+.cos-file-item.is-directory .file-name {
+  color: #1890ff;
+}
+
+.cos-file-item .file-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: #999;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #999;
+}
+
+.empty-state svg {
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .large-modal {
+    width: 95vw;
+    max-height: 95vh;
+  }
+
+  .modal-header-actions {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-end;
+  }
+
+  .cos-header-buttons {
+    margin-right: 0;
+  }
+
+  .breadcrumb-items {
+    flex-wrap: wrap;
+  }
+
+  .cos-actions {
+    flex-direction: column;
+  }
+
+  .cos-file-list {
+    max-height: 300px;
+  }
+
+  .cos-file-item .file-meta {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .cos-connection-info {
+    display: none; /* 在小屏幕上隐藏详细连接信息 */
+  }
 } 
